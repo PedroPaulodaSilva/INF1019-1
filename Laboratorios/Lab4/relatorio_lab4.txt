@@ -1,0 +1,270 @@
+Stephanie Fay - 1721631
+Pedro Paulo da Silva - 1421422
+
+/********** Exercicio 5 **********/
+
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+
+void handler (int param);
+
+int main (void) {
+
+	int x,y;
+
+	signal(SIGFPE, handler);
+
+	printf("Digite o 1 numero: ");
+	scanf("%d", &x);
+	
+	printf("Digite o 2 numero: ");
+	scanf("%d", &y);
+
+	printf("Adição: %d + %d = %d \n Subtração: %d - %d = %d \n Divisão: %d/%d = %d \n Multiplicação: %d x %d = %d \n", x, y, x+y, x, y, x-y, x, y, x/y, x, y, x*y);
+
+	return 0;
+
+}
+
+void handler (int param) {
+
+	printf ("Erro de floating point. Signal : %d\n", param);
+
+	exit(0);
+
+}
+
+/*
+
+Input & Output:cls
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] gcc -Wall -o prog ex5.c
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./prog        
+Digite o 1 numero: 4
+Digite o 2 numero: 7
+Adição: 4 + 7 = 11 
+ Subtração: 4 - 7 = -3 
+ Divisão: 4/7 = 0 
+ Multiplicação: 4 x 7 = 28 
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./prog
+Digite o 1 numero: 5
+Digite o 2 numero: 0
+Erro de floating point. Signal : 8
+
+Explicação:
+
+Quando executamos o programa sem digitar o zero no segundo número, o programa não tenta uma divisão por zero.
+Assim não há erro de floating number, então o sinal não é enviado e a função handler não é utilizada.
+
+Já quando colocamos o segundo número como zero, na parte da divisão entre dois números, o númerador sendo zero cai no erro de
+floating point. O programa automaticamente envia o sinal, gerando um código de erro default. Ao registrar o handler para este
+sinal com "signal(SIGFPE, handler);", o tratamento de erro muda e a função handler é chamada.
+
+Exemplo 1: sem zero no divisor.
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
+Digite o 1 numero: 1
+Digite o 2 numero: 5
+Adição: 1 + 5 = 6 
+ Subtração: 1 - 5 = -4 
+ Divisão: 1/5 = 0 
+ Multiplicação: 1 x 5 = 5 
+
+Exemplo 2: sem o registro do handler.
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
+Digite o 1 numero: 1
+Digite o 2 numero: 0
+Floating exception (core dumped)
+
+Exemplo 3: com o registro do handler.
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
+Digite o 1 numero: 1
+Digite o 2 numero: 0
+Erro de floating point. Signal : 8
+
+*/
+
+/********** Exercicio 6 **********/
+
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int flag = 0;
+int time = 0;
+int value = 0;
+
+void initHandler (int sinal);
+void quitHandler (int sinal);
+
+int main (void){
+
+	signal(SIGUSR1, initHandler);
+	signal(SIGUSR2, quitHandler);
+
+	printf("Preparado\n");
+	
+	pause();
+	
+	return 0;
+}
+
+void initHandler (int sinal){
+
+	printf("Ligação iniciada.\n");
+	while (1){
+
+		if(flag == 0){
+
+			sleep(1);
+
+			time++;
+
+			if(time <= 60)
+				value = value + 2;
+			else
+				value++;
+		}
+	}
+}
+
+void quitHandler (int sinal){
+
+	flag = 1;
+	printf("Terminado.\nTempo gasto: %d segundos\nPreco: %d centavos\n", time, value);
+	pause();
+
+	exit(0);
+}
+
+/*
+
+Input & Output:
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex6 &
+[18] 2814
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] Preparado
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] kill -s USR1 2814
+Ligação iniciada.
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] kill -s USR2 2814
+Terminado.
+Tempo gasto: 6 segundos
+Preco: 12 centavos
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex6 &
+[19] 2815
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] Preparado
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] kill -s USR1 2815
+Ligação iniciada.
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] kill -s USR2 2815
+Terminado.
+Tempo gasto: 84 segundos
+Preco: 144 centavos
+
+Explicação:
+
+O programa é iniciado em backgroud e fica esperando o inicio de uma ligação.
+
+A ligação é feita através do sinal initHandler, que é chamado pelo sinal SIGUSR1.
+O usuário manda o sinal através do comando "kill -s USR1 3004" (levando em conta que 3004 é o pid do processo),
+e assim a ligação é iniciada.
+
+O mesmo é feito para terminar uma ligação através do quitHandler, que é chamado pelo sinal SIGUSR2.
+Este sinal é chamado no terminal pelo comando "kill -s USR1 3004" (levando em conta que 3004 é o pid do processo).
+A função quitHandler diz a duração da chamada, o preço da mesma e termina o programa.
+
+*/
+
+/********** Exercicio 7 **********/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+
+int main (void) {
+
+	int pid1, pid2, pid3;
+
+	pid1 = fork();
+	if(pid1 == 0){
+		execve("./prog1", NULL, NULL);
+	}
+	kill(pid1, SIGSTOP);
+	
+	pid2 = fork();
+	if(pid2 == 0){
+		execve("./prog2", NULL, NULL);
+	}
+	kill(pid2, SIGSTOP);
+	
+	pid3 = fork();
+	if(pid3 == 0){
+		execve("./prog3", NULL, NULL);
+	}
+	kill(pid3, SIGSTOP);
+	
+	while(1){
+
+		kill(pid3, SIGSTOP);	
+		kill(pid1, SIGCONT);
+		sleep(1);
+		
+		kill(pid1, SIGSTOP);
+		kill(pid2, SIGCONT);
+		sleep(2);
+		
+		kill(pid2, SIGSTOP);
+		kill(pid3, SIGCONT);
+		sleep(2);
+	}
+	
+	return 0;
+
+}
+
+/*
+
+Input & Output:
+
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] gcc -Wall -o prog1 prog1.c
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] gcc -Wall -o prog2 prog2.c
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] gcc -Wall -o prog3 prog3.c
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] gcc -Wall -o prog ex7.c
+ex7.c: In function ‘main’:
+ex7.c:13:3: warning: null argument where non-null required (argument 2) [-Wnonnull]
+   execve("./prog1", NULL, NULL);
+   ^
+ex7.c:19:3: warning: null argument where non-null required (argument 2) [-Wnonnull]
+   execve("./prog2", NULL, NULL);
+   ^
+ex7.c:25:3: warning: null argument where non-null required (argument 2) [-Wnonnull]
+   execve("./prog3", NULL, NULL);
+   ^
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./prog
+
+
+Explicação:
+
+Primeiramente são criados 3 processos, cada um deles inicia um programa diferente com o 
+comando execve e depois põe o processo em estado de espera.
+
+Depois temos um loop sem fim que faz a alternancia entre os 3 processos. Manda um sinal para
+colocar o processo que estava executando anteriormente em espera e colocar o próximo em
+execução e depois esperar até a próxima alternancia com sleep.
+
+*/
+
+
+
+
+
+
