@@ -47,6 +47,11 @@ Adição: 4 + 7 = 11
  Subtração: 4 - 7 = -3 
  Divisão: 4/7 = 0 
  Multiplicação: 4 x 7 = 28 
+ 
+[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
+Digite o 1 numero: 1
+Digite o 2 numero: 0
+Floating exception (core dumped)
 
 [purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./prog
 Digite o 1 numero: 5
@@ -61,30 +66,6 @@ Assim não há erro de floating number, então o sinal não é enviado e a funç
 Já quando colocamos o segundo número como zero, na parte da divisão entre dois números, o númerador sendo zero cai no erro de
 floating point. O programa automaticamente envia o sinal, gerando um código de erro default. Ao registrar o handler para este
 sinal com "signal(SIGFPE, handler);", o tratamento de erro muda e a função handler é chamada.
-
-Exemplo 1: sem zero no divisor.
-
-[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
-Digite o 1 numero: 1
-Digite o 2 numero: 5
-Adição: 1 + 5 = 6 
- Subtração: 1 - 5 = -4 
- Divisão: 1/5 = 0 
- Multiplicação: 1 x 5 = 5 
-
-Exemplo 2: sem o registro do handler.
-
-[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
-Digite o 1 numero: 1
-Digite o 2 numero: 0
-Floating exception (core dumped)
-
-Exemplo 3: com o registro do handler.
-
-[purus.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab4] ./ex5
-Digite o 1 numero: 1
-Digite o 2 numero: 0
-Erro de floating point. Signal : 8
 
 */
 
@@ -170,7 +151,7 @@ Preco: 144 centavos
 
 Explicação:
 
-O programa é iniciado em backgroud e fica esperando o inicio de uma ligação.
+O programa é iniciado em background e fica esperando o inicio de uma ligação.
 
 A ligação é feita através do sinal initHandler, que é chamado pelo sinal SIGUSR1.
 O usuário manda o sinal através do comando "kill -s USR1 3004" (levando em conta que 3004 é o pid do processo),
