@@ -1,0 +1,238 @@
+Stephanie Fay - 1721631
+Pedro Paulo da Silva - 1421422
+
+/********** Exercicio 1 **********/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main(void) {
+	int fd[2];
+	int pid;
+	char msg[] = "Hello World!";
+	char recebido[20];
+	if(pipe(fd) < 0) {
+		printf("Erro ao criar Pipe.\n");
+		exit(1);
+	}
+	if((pid = fork()) == 0)
+	//processo filho
+	{
+		close(fd[0]);
+		write(fd[1], msg, sizeof(msg));
+		close(fd[1]);
+		return 0;
+	}
+	else
+	//processo pai
+	{
+		close(fd[1]);
+		read(fd[0], recebido, sizeof(recebido));
+		printf("%s \n", recebido);
+		close(fd[0]);
+		return 0;
+	}
+}
+
+/* 
+Input & Output:
+
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] gcc -Wall -o prog ex1.c
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] ./prog        
+Hello World!
+
+Explicação:
+
+o filho escreve a mensagem no pipe através da função write e o pai recebe a 
+mensagem do filho pelo pipe através da função read e exibe no terminal.
+
+*/
+
+/********** Exercicio 2 **********/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+int main(void) {
+	char recebido[20];
+	int fd, fr;
+	
+	fd = open("temp.txt",O_CREAT|O_RDWR|O_TRUNC,0666);
+	fr = open("read.txt", O_RDWR,0666);
+	
+	dup2(fd, 1);
+	
+	dup2(fr, 0);
+	
+	
+	
+	scanf("%s", recebido);
+	
+	printf("%s", recebido);	
+	
+	return 0;
+	
+}
+
+/* 
+Input & Output:
+
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] gcc -Wall -o prog ex2.c
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] ./prog
+
+Explicação:
+
+O programa altera a entrada e a saida padrão e redirecionamos
+para arquivos read.txt e temp.txt utilizando a função dup2().
+
+Desta forma ao utilizar o scanf, o le de um arquivo e passa a informação
+para a variavel recebido e a função printf le da variavel recebido
+e imprime no temp.txt
+
+*/
+
+/********** Exercicio 3 **********/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main(void) {
+	int fd[2];
+	int pid;
+	
+	if(pipe(fd) < 0) {
+		printf("Erro ao criar Pipe.\n");
+		exit(1);
+	}
+	
+	if((pid = fork()) == 0)
+	//processo filho
+	{
+		close(fd[0]);
+		// muda a saída padrão para a escrita no pipe	
+		if(dup2(fd[1], 1))
+		{
+			printf("Erro de dup2");
+		}
+		system("ls");
+		close(fd[1]);
+		return 0;
+	}
+	else
+	//processo pai
+	{
+		close(fd[1]);
+		//muda a entrada padrão para a escrita no pipe
+		if(dup2(fd[0], 0))
+		{
+			printf("Erro de dup2");
+		}
+		system("wc");
+		close(fd[0]);
+		return 0;
+	}
+	
+}
+
+/* 
+Input & Output:
+
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] gcc -Wall -o prog ex3.c
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] ./prog
+      7      10      59
+
+Explicação:
+
+o programa cria um processo pai e filho. O filho muda a saída padrão para a escrita no pipe, e chama ls. A saída de ls é então escrita no pipe. O processo pai então muda a entrada padrão para a leitura do pipe. Quando wc é então chamado ele consome o que está no pipe, ou seja, a saída de ls, e usa.
+
+*/
+
+/********** Exercicio 4 **********/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main(void) {
+	int fd[2];
+	int pid;
+	
+	if(pipe(fd) < 0)
+	{
+		printf("Erro ao criar Pipe.\n");
+		exit(1);
+	}
+	if((pid = fork()) == 0)
+	//processo leitor filho1
+	{
+		close(fd[1]);
+		int i;
+		while(1) {
+			read(fd[0], &i, sizeof(int));
+			printf("%d é do filho 1!\n", i);
+			sleep(2);
+		}
+	}
+	else
+	//processo pai
+	{
+		if((pid = fork()) == 0)
+		//processo filho2
+		{
+			close(fd[1]);
+			int i;
+			while(1)
+			{
+				read(fd[0], &i, sizeof(int));
+				printf("%d é do filho 2!\n", i);
+				sleep(2);
+			}
+		}
+		else
+		//pai escritor
+		{
+			close(fd[0]);
+			int i = 0;
+			while(1)
+			{
+				write(fd[1], &i, sizeof(int));
+				i++;
+				sleep(1);
+			}
+		}
+	}
+	
+}
+
+/* 
+Input & Output:
+
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] gcc -Wall -o prog ex4.c
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] ./prog
+0 é do filho 1!
+1 é do filho 2!
+2 é do filho 1!
+3 é do filho 2!
+4 é do filho 1!
+5 é do filho 2!
+6 é do filho 1!
+7 é do filho 2!
+8 é do filho 1!
+9 é do filho 2!
+10 é do filho 1!
+11 é do filho 2!
+12 é do filho 1!
+13 é do filho 2!
+^C
+[pirai.grad.inf.puc-rio.br:~/INF1019/Laboratorios/Lab5] 
+
+
+Explicação:
+
+a função cria um pai com dois filhos. O pai escreve no pipe em intervalos de tempo,  inteiros consecutivos(i), e os filhos leem os valores do pipe e os imprimem. Vemos que os filhos imprimem na tela alternadamente os valores, já que ambos consomem assim que podem o que há no pipe.
+
+*/
