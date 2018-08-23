@@ -18,8 +18,6 @@ int main () {
 		printf("\n Esperando filho terminar\n");
 	}
 	else {
-		waitpid(pid, &status, 0);
-
 		int pid2 = fork();
 		int status2;
 

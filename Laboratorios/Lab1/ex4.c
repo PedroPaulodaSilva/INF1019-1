@@ -35,7 +35,6 @@ int main () {
 		}
 	}
 	else {
-		waitpid(pid, &status, 0);
 		printf("PID filho 1: %d\n", getpid());
 		for(i = 0; i <= 100; i++) {
 			contador += 2;
