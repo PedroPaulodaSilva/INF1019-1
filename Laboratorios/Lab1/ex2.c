@@ -1,33 +1,33 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdlib.h>
 
-
-
-int main(void)
-{
-	int pid;
+int main () {
+	int i;
+	int contador = 1;
+	int pid = fork();
 	int status;
-	int var = 1;
+
 	
-	
-	pid = fork();
-	if(pid != 0)
-	{
-		printf("pai-var: %d\n", var);
-		waitpid(pid, &status, 0); 
-		printf("pai-var: %d\n", var);
+
+	if (pid != 0) {
+		printf("PID pai: %d\n", getpid());
+		for(i = 0; i < 50; i++) {
+			contador++;
+			printf(" %d, ", contador);
+		}
+		printf("\n Esperando filho terminar\n");
 	}
-	else 
-	{
-		var = 5;
-		printf("filho-var: %d\n", var);
+	else {
+		waitpid(pid, &status, 0);
+		printf("PID filho: %d\n", getpid());
+		for(i = 0; i <= 100; i++) {
+			contador += 2;
+			printf(" %d, ", contador);
+		}
+		printf("\n Finalizando filho\n");
+		exit(1);
 	}
 	return 0;
 }
-
-//Saída:
-//	pai-var: 1
-//	filho-var: 5
-//	pai-var: 1
-//Isso se justifica, porque o pai esperou o filho usando waitpid antes de imprimir pela segunda vez. Porém, ele não foi afetado pela alteração que o filho fez na variável, já que eles após o fork não utilizam o mesmo espaço de memória, já que são processos distintos.
