@@ -6,10 +6,7 @@
 int main () {
 	int i;
 	int contador = 1;
-	int pid = fork();
-	int status;
-
-	
+	int pid = fork();	
 
 	if (pid != 0) {
 		printf("PID pai: %d\n", getpid());
@@ -20,7 +17,7 @@ int main () {
 		printf("\n Esperando filho terminar\n");
 	}
 	else {
-		waitpid(pid, &status, 0);
+		
 		printf("PID filho: %d\n", getpid());
 		for(i = 0; i <= 100; i++) {
 			contador += 2;
