@@ -1,0 +1,386 @@
+Alunos: Stephanie Fay (1721631) & Pedro Paulo da Silva (1421422)
+
+terminal:
+gcc -o programa1 <arquivo do seu programa>
+gcc -o programa2 <arquivo do seu programa>
+gcc -o programa3 <arquivo do seu programa>
+
+[...]
+
+gcc -o escalonadores escalonadores.c
+gcc -o interpretador interpretador.c
+
+execute ./interpretador quando existir um arquivo exec.txt do gênero:
+
+Exec <nome do programa> prioridade= <numero>
+
+onde 1 é a maior prioridade e 7 a menor.
+
+Estrutura:
+typedef struct programa {
+	char nome[TAM];	// nome do programa
+	int prioridade;	// prioridade do programa
+	int pid;	// pid do programa
+	bool terminado;	// booleana onde true representa um programa finalizado
+} Programa;
+
+A partir do momento que o ./inter é executado, uma FIFO é criada para armazenar informações que serão passadas para o escalonador selecionado. O arquivo exec.txt é lido e, com uma diferença de 1 segundo entre cada entrada, as informações são passadas ao escalonador via FIFO (usando o signal SIGUSR1 para que o escalonador saiba quando pode ler informação).
+A partir disso, quando o processo lê a FIFO, ele preenche as structs necessárias para a execução e inicia o processo através da função execve (o colocando em estado de "pronto"), apenas para logo depois mandar um signal SIGSTOP (para entrar no processo de "espera").
+Agora que o programa está carregado na lista, a quantidade de programas carregados é incrementada.
+
+Cada escalonamento tem um método de execução. Existe uma lista de prioridades (1 <= i <= 7) que é responsável por entregar os processos aos escalonadores corretos.
+	Prioridade 1 <= i <= 2:
+Não existe fatia de tempo. O programa de prioridade mais alta irá ser executado até sua finalização, exceto no caso da inserção de outro programa de prioridade maior.
+	Prioridade 3 <= i <= 5:
+A fatia de tempo é de três segundos antes que ele seja interrompido e assim passa para o próximo a ser escalonado. O loop continua até que todos os programas sejam finalizados ou algum tipo de signal interrompa. Além disso, existe uma flag garantindo que, se algum programa de prioridade mais alta seja inserido após o que está em execução, o loop regresse para o nível de prioridade mais alta.
+	Prioridade 6:
+Existe um loop mestre que garante que todos da lista sejam executados pela mesma fatia de tempo (um segundo) e então o programa entrará em um I/O de três segundos.
+	Prioridade 7:
+Da mesma maneira do I/O existe um loop mestre que garante que todos da lista sejam executados pela mesma fatia de tempo (dois segundos) antes que o escalonador comece a executar o próximo programa da lista.
+
+Testes:
+	exec.txt
+Exec programa1 prioridade= 4
+Exec programa2 prioridade= 2
+Exec programa3 prioridade= 1
+
+	saida.txt
+Programa: ./programa1, PID: 8900, Prioridade: 4 inserido.
+Programa: ./programa2, PID: 8904, Prioridade: 2 inserido.
+Programa: ./programa3, PID: 8909, Prioridade: 1 inserido.
+lista de 1 programas de prioridade 2
+./programa2 ira começar (prioridade: 2)
+Real-Time
+Faltam 19 segundos.
+Faltam 18 segundos.
+Faltam 17 segundos.
+Faltam 16 segundos.
+Faltam 15 segundos.
+Faltam 14 segundos.
+Faltam 13 segundos.
+Faltam 12 segundos.
+Faltam 11 segundos.
+Faltam 10 segundos.
+Faltam 9 segundos.
+Faltam 8 segundos.
+Faltam 7 segundos.
+Faltam 6 segundos.
+Faltam 5 segundos.
+Faltam 4 segundos.
+Faltam 3 segundos.
+Faltam 2 segundos.
+Faltam 1 segundos.
+lista de 1 programas de prioridade 1
+./programa3 ira começar (prioridade: 1)
+Real-Time
+./programa3 ira começar (prioridade: 1)
+./programa3 terminado
+Real-Time
+lista de 1 programas de prioridade 2
+./programa2 ira começar (prioridade: 2)
+./programa2 terminado
+Real-Time
+lista de 1 programas de prioridade 4
+./programa1 ira começar (prioridade: 4)
+Prioridade
+Faltam 14 segundos.
+Faltam 13 segundos.
+Faltam 12 segundos.
+./programa1 ira começar (prioridade: 4)
+Prioridade
+Faltam 11 segundos.
+Faltam 10 segundos.
+Faltam 9 segundos.
+./programa1 ira começar (prioridade: 4)
+Prioridade
+Faltam 8 segundos.
+Faltam 7 segundos.
+Faltam 6 segundos.
+./programa1 ira começar (prioridade: 4)
+Prioridade
+Faltam 5 segundos.
+Faltam 4 segundos.
+Faltam 3 segundos.
+./programa1 ira começar (prioridade: 4)
+Prioridade
+Faltam 2 segundos.
+Faltam 1 segundos.
+./programa1 ira começar (prioridade: 4)
+./programa1 terminado
+================================================
+Todos os programas escalonados foram finalizados
+================================================
+
+	exec.txt
+Exec programa1 prioridade= 7
+Exec programa2 prioridade= 6
+Exec programa3 prioridade= 7
+Exec programa4 prioridade= 6
+	
+	saida.txt
+Programa: ./programa1, PID: 9098, Prioridade: 7 inserido.
+Programa: ./programa2, PID: 9102, Prioridade: 6 inserido.
+Programa: ./programa3, PID: 9111, Prioridade: 7 inserido.
+Programa: ./programa4, PID: 9118, Prioridade: 6 inserido.
+lista de 2 programas de prioridade 6
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 19 segundos.
+lista de 2 programas de prioridade 6
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 18 segundos.
+Faltam 17 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 16 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 15 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 14 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 13 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 12 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 11 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 10 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 9 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 8 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 7 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 6 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 5 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 4 segundos.
+Faltam 3 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 2 segundos.
+./programa4 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 1 segundos.
+./programa4 ira começar (prioridade: 6)
+./programa4 terminado
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+./programa2 terminado
+I/O Bound
+lista de 2 programas de prioridade 7
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 14 segundos.
+Faltam 13 segundos.
+./programa3 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 12 segundos.
+Faltam 11 segundos.
+./programa3 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 10 segundos.
+Faltam 9 segundos.
+./programa3 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 8 segundos.
+Faltam 7 segundos.
+./programa3 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 6 segundos.
+Faltam 5 segundos.
+./programa3 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 4 segundos.
+Faltam 3 segundos.
+./programa3 ira começar (prioridade: 7)
+./programa3 terminado
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 2 segundos.
+Faltam 1 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+./programa1 terminado
+================================================
+Todos os programas escalonados foram finalizados
+================================================
+
+	exec.txt
+Exec programa1 prioridade= 7
+Exec programa2 prioridade= 6
+Exec programa3 prioridade= 1
+
+	saida.txt
+Programa: ./programa1, PID: 9475, Prioridade: 7 inserido.
+Programa: ./programa2, PID: 9479, Prioridade: 6 inserido.
+Programa: ./programa3, PID: 9484, Prioridade: 1 inserido.
+lista de 1 programas de prioridade 6
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 19 segundos.
+lista de 1 programas de prioridade 1
+./programa3 ira começar (prioridade: 1)
+Real-Time
+./programa3 ira começar (prioridade: 1)
+./programa3 terminado
+Real-Time
+lista de 1 programas de prioridade 6
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 18 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 17 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 16 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 15 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 14 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 13 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 12 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 11 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 10 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 9 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 8 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 7 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 6 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 5 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 4 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 3 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 2 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+Faltam 1 segundos.
+./programa2 ira começar (prioridade: 6)
+I/O Bound
+./programa2 ira começar (prioridade: 6)
+./programa2 terminado
+I/O Bound
+lista de 1 programas de prioridade 7
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 14 segundos.
+Faltam 13 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 12 segundos.
+Faltam 11 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 10 segundos.
+Faltam 9 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 8 segundos.
+Faltam 7 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 6 segundos.
+Faltam 5 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 4 segundos.
+Faltam 3 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 2 segundos.
+Faltam 1 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+./programa1 terminado
+================================================
+Todos os programas escalonados foram finalizados
+================================================

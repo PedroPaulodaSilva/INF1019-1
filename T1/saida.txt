@@ -1,0 +1,73 @@
+Programa: ./programa1, PID: 11729, Prioridade: 7 inserido.
+Programa: ./programa2, PID: 11733, Prioridade: 2 inserido.
+Programa: ./programa3, PID: 11738, Prioridade: 1 inserido.
+lista de 1 programas de prioridade 2
+./programa2 ira começar (prioridade: 2)
+Real-Time
+Faltam 19 segundos.
+Faltam 18 segundos.
+lista de 1 programas de prioridade 1
+./programa3 ira começar (prioridade: 1)
+Real-Time
+./programa3 ira começar (prioridade: 1)
+./programa3 terminado
+Real-Time
+lista de 1 programas de prioridade 2
+./programa2 ira começar (prioridade: 2)
+Real-Time
+Faltam 17 segundos.
+Faltam 16 segundos.
+Faltam 15 segundos.
+Faltam 14 segundos.
+Faltam 13 segundos.
+Faltam 12 segundos.
+Faltam 11 segundos.
+Faltam 10 segundos.
+Faltam 9 segundos.
+Faltam 8 segundos.
+Faltam 7 segundos.
+Faltam 6 segundos.
+Faltam 5 segundos.
+Faltam 4 segundos.
+Faltam 3 segundos.
+Faltam 2 segundos.
+Faltam 1 segundos.
+./programa2 ira começar (prioridade: 2)
+./programa2 terminado
+Real-Time
+lista de 1 programas de prioridade 7
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 14 segundos.
+Faltam 13 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 12 segundos.
+Faltam 11 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 10 segundos.
+Faltam 9 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 8 segundos.
+Faltam 7 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 6 segundos.
+Faltam 5 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 4 segundos.
+Faltam 3 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+Faltam 2 segundos.
+Faltam 1 segundos.
+./programa1 ira começar (prioridade: 7)
+CPU Bound
+./programa1 ira começar (prioridade: 7)
+./programa1 terminado
+================================================
+Todos os programas escalonados foram finalizados
+================================================

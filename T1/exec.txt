@@ -1,0 +1,4 @@
+Exec programa1 prioridade= 7
+Exec programa2 prioridade= 2
+Exec programa3 prioridade= 1
+
