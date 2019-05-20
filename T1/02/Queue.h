@@ -36,5 +36,4 @@ void q_free (Queue * queue);
 
 void q_print(Queue * queue);
 
-#endif /* Queue_h */
-
+#endif

@@ -23,7 +23,6 @@ int p_findNextExeTime(Process * proc) {
 		i++;
 	}
 
-	// Check if it's still missing some part of slice
 	if (sumExeTime == proc->runningTime) {
 		nextExecTime = proc->slices[i + 1];
 	}

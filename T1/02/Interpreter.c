@@ -15,11 +15,11 @@
 int main(int argc, char const *argv[]) {
 	char programName[NAME_SIZE];
 	char io[IO_SIZE];
-	char schedule[IO_SIZE];
 	char * buffer[BUFFER_SIZE];
-	int index = 0;
+	int index = 1;
 
-	printf("Digite o comando 'exec <nomedoprograma> <sequenciadetempo>'\n");
+	printf("Digite o comando 'exec <nome do programa> <fatias de tempo separadas por virgulas>'\n");
+	printf("Ao finalizar digite 'fim'\n");
 
 	while(scanf(" exec %s %s", programName, io) == 2){
 			 buffer[index] = (char*)malloc(strlen(programName)+1);
@@ -28,11 +28,11 @@ int main(int argc, char const *argv[]) {
 			 buffer[index] = (char*)malloc(strlen(io)+1);
 			 strcpy(buffer[index], io);
 			 index++;
-	 }
+	}
+	
+	buffer[0] = "SchedulerMLF";
+	execv("SchedulerMLF", buffer);
 
-	 execv("SchedulerMLF", buffer);
-
-
-	 return 0;
+	return 0;
 }
 

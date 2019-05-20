@@ -26,8 +26,7 @@ void w4ioHandler (int signal);
 void finishedIoHandler ();
 void childEndedHandler (int signal);
 
-int main (int argc, const char * argv[]) {
-	printf("\nScheduler initialized (pid = %d)\n", getpid());
+int main (int argc, char * argv[]) {
 	Node * auxNode = NULL;
 	int totalRunningTime = 0, i;
 	currentTS = 0;
@@ -38,16 +37,15 @@ int main (int argc, const char * argv[]) {
 	queueRunning = 1;
 
 	if (signal(SIGUSR1, w4ioHandler) == SIG_ERR) {
-	    printf("Error installing handlers.\nFinishing scheduler.\n");
+	    printf("Erro na inicializacao, finalizando scheduler\n");
 	    exit(-1);
 	}
 
-	// Put all processes on the major priority queue
 	int times[50];
 	int j = 0;
-	printf("\nInitializing all processes\n");
+	printf("\n - Inicializando todos os processos - \n");
 
-	for (i = 0; i < argc; i+=2) {
+	for (i = 1; i < argc; i+=2) {
 		char * testvar = strdup(argv[i + 1]);
 		char * pch;
 		pch = strtok (testvar, ",");
@@ -72,54 +70,48 @@ int main (int argc, const char * argv[]) {
 		newArgs[2] = strdup(argv[i + 1]);
 
 
-		printf("Process number %d\n", i);
-		printf(" - name => %s\n", argv[i]);
-		printf(" - slices => %s\n", newArgs[2]);
+		printf("Numero do Processo %d\n", i);
+		printf(" - Nome => %s\n", argv[i]);
+		printf(" - Fatias de Tempo => %s\n", newArgs[2]);
 		newProcess->pid = fork();
-		printf("\nForked (pid = %d)\n", newProcess->pid);
+		printf(" - Pid => %d\n", newProcess->pid);
 		if (newProcess->pid == 0) {
-			printf("------- EXEC of program %s\n", newProcess->name);
+			printf("------- Executando %s\n", newProcess->name);
 			execv(newProcess->name, newArgs);
 		}
 		else if (newProcess->pid != 0) {
 			usleep(2000);
-			printf("Will send SIGSTOP newProcess\n");
+			printf("Enviando SIGSTOP pois PID != 0\n");
 			kill(newProcess->pid, SIGSTOP);
-			printf("Enqueued new program\n");
 			q_enqueue(newProcess, firstPriorityQueue->readyQueue);
 		}
 		else {
-			printf("Error forking this process.\nFinishing scheduler.\n");
+			printf("Erro no fork, abortando\n");
 			exit(-1);
 		}
-		printf("--->  Finished parsing this program\n");
 	}
-	printf("--->  Finished parsing programs\n\n");
 
-	// Initializing IO handlers
 	waitingIOProcs = q_create();
 
-	// Run the 3 priority queues while there is any process to run
 	while (TRUE) {
-		printf("\n\n---------------------->  Clock (%d)\n", totalRunningTime + 1);
+		printf("\n============== Tempo total de execucao: %d ==============\n", totalRunningTime + 1);
 		Process * current = getRunningQueue()->inExec;
-		printf("\nCurrent timeSlice = %d \n\n", currentTS);
+		printf("\nFatia de Tempo = %d \n\n", currentTS);
 
 		if (currentTS == 0) {
-			// Pause current running process
 			if (current != NULL) {
-				printf("- Stopping current (program %s)\n", current->name);
+				printf("- Interrompendo %s\n", current->name);
 				kill(current->pid, SIGSTOP);
 
 				int nextSlice = p_findNextExeTime(current);
-				printf("---------- nextSlice = %d | timeSlice = %d\n", nextSlice, getRunningQueue()->timeSlice);
+				printf("Proxima fatia de tempo = %d | Atual = %d\n", nextSlice, getRunningQueue()->timeSlice);
 				if (nextSlice >= getRunningQueue()->timeSlice) {
 					if (queueRunning == 1) {
-						printf("- Enqueued program %s on queue 2\n", current->name);
+						printf("- %s movido para lista 2\n", current->name);
 						q_enqueue(current, secondPriorityQueue->readyQueue);
 					}
-					else { // queueRunning == 2
-						printf("- Enqueued program %s on queue 3\n", current->name);
+					else { 
+						printf("- %s movido para lista 3\n", current->name);
 						q_enqueue(current, thirdPriorityQueue->readyQueue);
 					}
 				}
@@ -134,31 +126,31 @@ int main (int argc, const char * argv[]) {
 			else if (!q_isEmpty(thirdPriorityQueue->readyQueue)) {
 				queueRunning = 3;
 			}
-			else if (q_isEmpty(waitingIOProcs)) { // All queues are empty
+			else if (q_isEmpty(waitingIOProcs)) {
 				break;
 			}
 
 			if (!q_isEmpty(firstPriorityQueue->readyQueue) ||
 					!q_isEmpty(secondPriorityQueue->readyQueue) ||
 					!q_isEmpty(thirdPriorityQueue->readyQueue)) {
-						printf("\n- Running queue %d\n", queueRunning);
+						printf("\n- Executando lista %d\n", queueRunning);
 						currentTS = getRunningQueue()->timeSlice - 1;
 						rr_runNextProcess(getRunningQueue());
 						Process * proc2Run = getRunningQueue()->inExec;
-						printf("-> SIGCONT sent to program %s\n", proc2Run->name);
+						printf("-> SIGCONT enviado para %s\n", proc2Run->name);
 						kill(proc2Run->pid, SIGCONT);
-						sleep(1); usleep(1000);// Clock time
-						printf("-> SIGSTOP sent to program %s\n", proc2Run->name);
+						sleep(1); usleep(1000);
+						printf("-> SIGSTOP enviado para %s\n", proc2Run->name);
 						kill(proc2Run->pid, SIGSTOP);
 			}
 		}
 		else {
 			Process * proc2Run = getRunningQueue()->inExec;
 			if (proc2Run != NULL) {
-				printf("-> SIGCONT sent to program %s\n", proc2Run->name);
+				printf("-> SIGCONT enviado para %s\n", proc2Run->name);
 				kill(proc2Run->pid, SIGCONT);
-				sleep(1); usleep(1000);// Clock time
-				printf("-> SIGSTOP sent to program %s\n", proc2Run->name);
+				sleep(1); usleep(1000);
+				printf("-> SIGSTOP enviado para %s\n", proc2Run->name);
 				kill(proc2Run->pid, SIGSTOP);
 			}
 
@@ -166,13 +158,12 @@ int main (int argc, const char * argv[]) {
 		}
 
 		if (!q_isEmpty(waitingIOProcs)) {
-			printf("\n- waitingIOProcs queue not empty\n");
 			auxNode = waitingIOProcs->first;
 
 			while (auxNode != NULL) {
 				auxNode->value->ioTime--;
 				auxNode->value->runningTime++;
-				printf("- %s ioTime = %d\n", auxNode->value->name, auxNode->value->ioTime);
+				printf("- %s I/O = %d\n", auxNode->value->name, auxNode->value->ioTime);
 				if (auxNode->value->ioTime == 0) {
 					finishedIoHandler();
 				}
@@ -186,14 +177,12 @@ int main (int argc, const char * argv[]) {
 				q_isEmpty(thirdPriorityQueue->readyQueue) &&
 				q_isEmpty(waitingIOProcs) &&
 				getRunningQueue()->inExec == NULL) {
-					printf("---  Nothing else to do  ---\n");
+					printf("---  Lista Vazia  ---\n");
 					break;
 		}
 
 		totalRunningTime++;
 	}
-
-	printf("\n\n---  Finalizing Scheduler  ---\n\n");
 
 	rr_free(firstPriorityQueue);
 	rr_free(secondPriorityQueue);
@@ -215,15 +204,12 @@ RRScheduler * getRunningQueue() {
 }
 
 void finishedIoHandler() {
-	printf("--- Finished IO Handler\n");
 	Node * auxNode = waitingIOProcs->first;
-	RRScheduler * currentQueue = getRunningQueue();
 
 	while (auxNode != NULL) {
 		if (auxNode->value->ioTime == 0) {
 			kill(auxNode->value->pid, SIGSTOP);
 			q_remove(auxNode->value, waitingIOProcs);
-			printf("--- Removed program %s\n", auxNode->value->name);
 
 			if (!p_hasFinishedRunning(auxNode->value)) {
 				if (auxNode->value->nextQueue == 1) {
@@ -235,8 +221,6 @@ void finishedIoHandler() {
 				else if (auxNode->value->nextQueue == 3) {
 					q_enqueue(auxNode->value, thirdPriorityQueue->readyQueue);
 				}
-
-				printf("--- Enqueued program %s on queue %d\n", auxNode->value->name, auxNode->value->nextQueue);
 				auxNode->value->nextQueue = 0;
 			}
 		}
@@ -247,7 +231,7 @@ void finishedIoHandler() {
 
 void w4ioHandler(int signal) {
 	if (signal == SIGUSR1) {
-		printf("\n--- Began IO Handler\n");
+		printf("\n======= I/O =======\n");
 		Process * procInIO = getRunningQueue()->inExec;
 
 		getRunningQueue()->inExec = NULL;
@@ -281,17 +265,10 @@ void childEndedHandler(int signal) {
 	}
 
 	if (signal == SIGCHLD && p_hasFinishedRunning(current)) {
-		printf("\n--- Child Ended Handler\n");
-		printf("\n--- Child Ended test\n");
-
-		printf("\n--- Child Ended post getRunningQueue %d\n", queueRunning);
 		if (getRunningQueue()->inExec != NULL) {
 			getRunningQueue()->inExec = NULL;
-
-			printf("getRunningQueue()->inExec = NULL\n");
-			printf("Finishing process %s.\n", current->name);
 			kill(current->pid, SIGKILL);
-			// p_free(current);
+			
 		}
 	}
 }

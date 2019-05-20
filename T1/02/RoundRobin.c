@@ -22,7 +22,6 @@ void rr_runNextProcess(RRScheduler * scheduler) {
 
 	Process * proc2Run = NULL;
 	proc2Run = q_dequeue(scheduler->readyQueue);
-	printf("rr_runNextProcess dequeued program %s\n", proc2Run->name);
 	int nextSlice = p_findNextExeTime(proc2Run);
 
 	scheduler->inExec = proc2Run;
