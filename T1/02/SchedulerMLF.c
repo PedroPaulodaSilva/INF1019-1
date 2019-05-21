@@ -63,12 +63,12 @@ int main (int argc, char * argv[]) {
 		newProcess->slices = times;
 		strcpy(newProcess->name, argv[i]);
 
-		char * newArgs [3];
+		char * newArgs [4];
 		newArgs[0] = (char *) argv[i];
 		newArgs[1] = (char *) malloc(sizeof(char) * 10);
 		sprintf(newArgs[1], "%d", getpid());
 		newArgs[2] = strdup(argv[i + 1]);
-
+		newArgs[3] = NULL;
 
 		printf("Numero do Processo %d\n", i);
 		printf(" - Nome => %s\n", argv[i]);
@@ -78,6 +78,7 @@ int main (int argc, char * argv[]) {
 		if (newProcess->pid == 0) {
 			printf("------- Executando %s\n", newProcess->name);
 			execv(newProcess->name, newArgs);
+			perror("Falha ao iniciar programa\n");
 		}
 		else if (newProcess->pid != 0) {
 			usleep(2000);
