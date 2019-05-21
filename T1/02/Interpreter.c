@@ -30,8 +30,8 @@ int main(int argc, char const *argv[]) {
 			 index++;
 	}
 	buffer[index] = NULL;
-	buffer[0] = "SchedulerMLF";
-	execv("./SchedulerMLF", buffer);
+	buffer[0] = "Scheduler";
+	execv("./Scheduler", buffer);
 	perror("Falha ao iniciar Scheduler\n");
 
 	return 0;
